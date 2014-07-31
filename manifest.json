@@ -11,9 +11,10 @@
         "default_popup": "popup.html"
     },
     "content_scripts": [{
-            "matches": ["http://*/*","https://*/*"],
-            "js": ["js/content.js"],
-            "run_at": "document_start"
+            "matches":  ["http://*/*","https://*/*"],
+            "js":       ["js/content.js"],
+            "css":      ["css/content.css"],
+            "run_at":   "document_start"
     }],
     "permissions": ["http://douban.fm/"]
 }

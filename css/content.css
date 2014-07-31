@@ -1,0 +1,9 @@
+#lyricContainer {
+  position  : relative;
+  left      : 40px;
+  top       : 10px;
+  width     : 240px;
+  height    : 400px;
+  overflow  : auto;
+  z-index   : 1;  
+}

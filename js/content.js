@@ -1,138 +1,157 @@
 /**
-* 
-* 
-* 
-* 在fm-channel-list div之前插入fm_lyric div，设置样式
-* 
-* 
-* 
-* setLyricStyle(div): 设置lyric div的样式
-* getSongInfo(): 从local storage中获取歌曲基本信息
-* showSongInformation(): 显示歌曲信息到fm_lyric div中
-* showSongLyric(name, artist, div): 显示歌词/“找不到”到fm_lyric div中
-* getSongLyric(name, artist, div): 获取歌词（百度歌词搜索歌名+歌手名的第一个结果）
-* getLyricURL(lyric): 根据上一项结果获取歌词lrc链接
-* updateLyric(div, name, request): 更新歌词
-* 
-* 
-* 
-**/
+ * 
+ * 此插件用来在豆瓣FM中显示歌词
+ * 
+ */
 
 window.onload = function(){
-    // 清理local storage
-    localStorage.clear();
+  var div_name;
+  var text;
+  var div_channel_list;
 
-    // 新建lyric div
-    var div_name = document.createElement("div");
-    var text = document.createTextNode("Loading...");
-    div_name.appendChild(text);
-    div_name.setAttribute("id", "fm_lyric");
-    // 设置div样式
-    setLyricStyle(div_name);
+  // 清理local storage
+  localStorage.clear();
 
-    // insert div
-    var div_channel_list = document.getElementById("fm-channel-list");
-    div_channel_list.parentNode.insertBefore(div_name, div_channel_list);
+  // 新建lyric div
+  div_name = document.createElement("div");
+  text = document.createTextNode("Loading...");
+  div_name.appendChild(text);
+  div_name.setAttribute("id", "lyricContainer");
 
-    // 以500为周期刷新歌曲信息
-    setInterval("showSongInformation()", 500);
+  // insert div
+  div_channel_list = document.querySelector("#fm-channel-list");
+  div_channel_list.parentNode.insertBefore(div_name, div_channel_list);
+
+  // 以500为周期刷新歌曲信息
+  setInterval("showSongInformation()", 500);
 }
 
-function setLyricStyle(div) {
-// 设置lyric div的style
-    div.style.position = "relative";
-    div.style.left = "40px";
-    div.style.top = "10px";
-    div.style.width = "240px";
-    div.style.height = "400px";
-    div.style.overflow = "auto";
-    div.style.zIndex = "1";
-}
-
+/**
+ * 通过local storage获取歌曲信息
+ * 
+ * @return <JSON> info
+ */
 function getSongInfo() {
-// get song's info via local storage
-    var info = localStorage.bubbler_song_info;
-    info = JSON.parse(info);
-    return info;
+  var info = localStorage.bubbler_song_info;
+  info = JSON.parse(info);
+  return info;
 }
 
+/*
+ * 在lyricContainer中显示歌曲信息
+ * 
+ * @return null
+ */
 function showSongInformation() {
-// show song's information in fm_lyric div
-    var info = getSongInfo();
-    var name = info.song_name;   // get song's name
-    var artist = info.artist;   // get song's name
+  var info = getSongInfo();
 
-    // show song's information
-    var div_name = document.getElementById("fm_lyric");
-    
-    var isNameChange = div_name.innerHTML.search(name) == -1;
-    // 如果歌曲更新
-    if(isNameChange){
-        showSongLyric( name, artist, div_name );   // 显示歌词
-    }
+  // get song's name
+  var name = info.song_name;
+
+  // get song's artist
+  var artist = info.artist;
+  var div_name;
+  var isNameChange;
+
+  // show song's information
+  div_name = document.querySelector("#lyricContainer");
+  
+  // FIXME: name需要去除标点符号
+  isNameChange = div_name.innerHTML.search(name) === -1;
+
+  // 如果歌曲更新
+  if(isNameChange){
+    showSongLyric( name, artist, div_name );   // 显示歌词
+  }
 }
 
+/**
+ * 显示歌词
+ * 
+ * @param <String> name, <String> artist, <?> div
+ * @return null
+ */
 function showSongLyric(name, artist, div) {
-// get lyric
-    // 如果豆瓣fm在加载中，退出函数
-    if (name.search("FM")!=-1)
-        return 0;
+  var request;
 
-    // 获取歌词并显示
-    var request = new XMLHttpRequest();
-    request.onreadystatechange = function() {
-        var isStatus2xx = request.status / 200 === 1;
-        var isStatus304 = request.status === 304;
-        if (request.readyState == 4){
-            if (isStatus2xx || isStatus304){
-                updateLyric( div, name, request);   // 更新歌词内容
-            }else{
-                console.log("request error: " + request.status);
-            }
-        }
+  // 判断request状态
+  var isStatus2xx;
+  var isStatus304;
+  
+  // 如果豆瓣fm在加载中，退出函数
+  if (name.search("FM")!=-1)
+    return 0;
+
+  // 获取歌词并显示
+  request = new XMLHttpRequest();
+  request.onreadystatechange = function() {
+    isStatus2xx = request.status / 200 === 1;
+    isStatus304 = request.status === 304;
+    if (request.readyState == 4){
+      if (isStatus2xx || isStatus304){
+
+        // 更新歌词内容
+        updateLyric( div, name, request);
+      }else{
+        console.log("request error: " + request.status);
+      }
     }
-    request.open("GET", "http://music.baidu.com/search/lrc?key=" + name + " " + artist, true);
-    request.send();
-    
+  }
+  request.open("GET", "http://music.baidu.com/search/lrc?key=" + name + " " + artist, true);
+  request.send();
 }
 
+/**
+ * 更新歌词
+ * 
+ * @param <?> div, <String> name, <String> request
+ * @return null
+ */
 function updateLyric(div, name, request) {
-// update lyric div
+  
+  // lyric
+  var lyric = request.responseText;
+  
+  // get lrc
+  var lrcURL;
+  var lyric_start;
+  var lyric_end;
 
-    // lyric
-    var lyric = request.responseText;
-    // get lrc
-    var lrcURL;
+  // if has result, get first result
+  lyric_start = lyric.indexOf('<p id="lyricCont-0">');
+  if(lyric_start != -1){
     
-    // if has result, get first result
-    var lyric_start = lyric.indexOf("<p id=\"lyricCont-0\">");
-    if(lyric_start != -1){
-        // get lyric's url
-        lrcURL = getLyricURL( lyric );
-        //console.log(getLyricFile(lrcURL)):
+    // get lyric's url
+    lrcURL = getLyricURL( lyric );
 
-        // get lyric
-        lyric = lyric.substring(lyric_start);
-        var lyric_end = lyric.indexOf("</p>");
-        lyric = lyric.substring(0, lyric_end);   
-        
-        div.innerHTML = name + "\n" + lyric;
-    }else{
-        div.innerHTML = name + "\n" + "找不到T.T";
-    }
+    // get lyric
+    lyric = lyric.substring(lyric_start);
+    lyric_end = lyric.indexOf("</p>");
+    lyric = lyric.substring(0, lyric_end);   
+    
+    div.innerHTML = name + "\n" + lyric;
+  }else{
+    div.innerHTML = name + "\n" + "找不到T.T";
+  }
 }
 
+/**
+ * 获取歌曲lrc文件地址
+ * 
+ * @param <String> lyric
+ * @return <String> lrcURL
+ */
 function getLyricURL(lyric) {
-// get song's lrc url
-    var lrcURL = lyric.substring( lyric.indexOf("first_lrc_li") );
-    lrcURL = lrcURL.substring( lrcURL.indexOf("down-lrc-btn") );
-    lrcURL = lrcURL.substring( lrcURL.indexOf("/"), lrcURL.indexOf("}") - 2 );
-    lrcURL = "http://music.baidu.com" + lrcURL;
+  var lrcURL = lyric.substring( lyric.indexOf("first_lrc_li") );
+  
+  lrcURL = lrcURL.substring( lrcURL.indexOf("down-lrc-btn") );
+  lrcURL = lrcURL.substring( lrcURL.indexOf("/"), lrcURL.indexOf("}") - 2 );
+  lrcURL = "http://music.baidu.com" + lrcURL;
 
-    return lrcURL;
+  return lrcURL;
 }
 
-
+// TODO: 读取lrc文件到内存中
 /*
 function getLyricFile(lrcURL) {
 // get lrc file
