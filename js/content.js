@@ -51,16 +51,15 @@ function showSongInformation() {
   // get song's artist
   var artist = info.artist;
   var div_name;
-  var isNameChange;
+  var isNameChanged;
 
   // show song's information
   div_name = document.querySelector("#lyricContainer");
   
-  // FIXME: name需要去除标点符号
-  isNameChange = div_name.innerHTML.search(name) === -1;
+  isNameChanged = div_name.getAttribute('data-song-name') !== name;
 
   // 如果歌曲更新
-  if(isNameChange){
+  if(isNameChanged){
     showSongLyric( name, artist, div_name );   // 显示歌词
   }
 }
@@ -73,10 +72,6 @@ function showSongInformation() {
  */
 function showSongLyric(name, artist, div) {
   var request;
-
-  // 判断request状态
-  var isStatus2xx;
-  var isStatus304;
   
   // 如果豆瓣fm在加载中，退出函数
   if (name.search("FM")!=-1)
@@ -85,8 +80,8 @@ function showSongLyric(name, artist, div) {
   // 获取歌词并显示
   request = new XMLHttpRequest();
   request.onreadystatechange = function() {
-    isStatus2xx = request.status / 200 === 1;
-    isStatus304 = request.status === 304;
+    var isStatus2xx = request.status / 200 === 1;
+    var isStatus304 = request.status === 304;
     if (request.readyState == 4){
       if (isStatus2xx || isStatus304){
 
@@ -117,9 +112,12 @@ function updateLyric(div, name, request) {
   var lyric_start;
   var lyric_end;
 
+  // set song name to the lyric container
+  div.setAttribute('data-song-name', name);
+
   // if has result, get first result
   lyric_start = lyric.indexOf('<p id="lyricCont-0">');
-  if(lyric_start != -1){
+  if(lyric_start !== -1){
     
     // get lyric's url
     lrcURL = getLyricURL( lyric );
@@ -129,9 +127,9 @@ function updateLyric(div, name, request) {
     lyric_end = lyric.indexOf("</p>");
     lyric = lyric.substring(0, lyric_end);   
     
-    div.innerHTML = name + "\n" + lyric;
+    div.innerHTML = "\n" + lyric;
   }else{
-    div.innerHTML = name + "\n" + "找不到T.T";
+    div.innerHTML = "\n" + "找不到T.T";
   }
 }
 
