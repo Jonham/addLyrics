@@ -51,16 +51,15 @@ function showSongInformation() {
   // get song's artist
   var artist = info.artist;
   var div_name;
-  var isNameChange;
+  var isNameChanged;
 
   // show song's information
   div_name = document.querySelector("#lyricContainer");
   
-  // FIXME: name需要去除标点符号
-  isNameChange = div_name.innerHTML.search(name) === -1;
+  isNameChanged = div_name.getAttribute('data-song-name') !== name;
 
   // 如果歌曲更新
-  if(isNameChange){
+  if(isNameChanged){
     showSongLyric( name, artist, div_name );   // 显示歌词
   }
 }
@@ -117,9 +116,12 @@ function updateLyric(div, name, request) {
   var lyric_start;
   var lyric_end;
 
+  // set song name to the lyric container
+  div.setAttribute('data-song-name', name);
+
   // if has result, get first result
   lyric_start = lyric.indexOf('<p id="lyricCont-0">');
-  if(lyric_start != -1){
+  if(lyric_start !== -1){
     
     // get lyric's url
     lrcURL = getLyricURL( lyric );
@@ -129,9 +131,9 @@ function updateLyric(div, name, request) {
     lyric_end = lyric.indexOf("</p>");
     lyric = lyric.substring(0, lyric_end);   
     
-    div.innerHTML = name + "\n" + lyric;
+    div.innerHTML = "\n" + lyric;
   }else{
-    div.innerHTML = name + "\n" + "找不到T.T";
+    div.innerHTML = "\n" + "找不到T.T";
   }
 }
 
