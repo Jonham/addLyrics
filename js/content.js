@@ -72,10 +72,6 @@ function showSongInformation() {
  */
 function showSongLyric(name, artist, div) {
   var request;
-
-  // 判断request状态
-  var isStatus2xx;
-  var isStatus304;
   
   // 如果豆瓣fm在加载中，退出函数
   if (name.search("FM")!=-1)
@@ -84,8 +80,8 @@ function showSongLyric(name, artist, div) {
   // 获取歌词并显示
   request = new XMLHttpRequest();
   request.onreadystatechange = function() {
-    isStatus2xx = request.status / 200 === 1;
-    isStatus304 = request.status === 304;
+    var isStatus2xx = request.status / 200 === 1;
+    var isStatus304 = request.status === 304;
     if (request.readyState == 4){
       if (isStatus2xx || isStatus304){
 
