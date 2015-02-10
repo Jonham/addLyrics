@@ -7,3 +7,7 @@
   overflow  : auto;
   z-index   : 1;  
 }
+
+#ad-click-area {
+	width: 300px !important;
+}
