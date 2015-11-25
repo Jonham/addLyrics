@@ -4,10 +4,12 @@
  * 
  */
 
-window.onload = function(){
-  var div_name;
-  var text;
-  var div_channel_list;
+ window.onload = function(){
+  var checkIfDoubanFM = (window.location.host.indexOf("douban.fm") == -1) ? false : true;
+  if ( checkIfDoubanFM ) {
+    var div_name;
+    var text;
+    var div_channel_list;
 
   // 清理local storage
   localStorage.clear();
@@ -25,13 +27,14 @@ window.onload = function(){
   // 以500为周期刷新歌曲信息
   setInterval("showSongInformation()", 500);
 }
+}
 
 /**
  * 通过local storage获取歌曲信息
  * 
  * @return <JSON> info
  */
-function getSongInfo() {
+ function getSongInfo() {
   var info = localStorage.bubbler_song_info;
   info = JSON.parse(info);
   return info;
@@ -42,7 +45,7 @@ function getSongInfo() {
  * 
  * @return null
  */
-function showSongInformation() {
+ function showSongInformation() {
   var info = getSongInfo();
 
   // get song's name
@@ -70,7 +73,7 @@ function showSongInformation() {
  * @param <String> name, <String> artist, <?> div
  * @return null
  */
-function showSongLyric(name, artist, div) {
+ function showSongLyric(name, artist, div) {
   var request;
   
   // 如果豆瓣fm在加载中，退出函数
@@ -102,8 +105,8 @@ function showSongLyric(name, artist, div) {
  * @param <?> div, <String> name, <String> request
  * @return null
  */
-function updateLyric(div, name, request) {
-  
+ function updateLyric(div, name, request) {
+
   // lyric
   var lyric = request.responseText;
   
@@ -118,7 +121,7 @@ function updateLyric(div, name, request) {
   // if has result, get first result
   lyric_start = lyric.indexOf('<p id="lyricCont-0">');
   if(lyric_start !== -1){
-    
+
     // get lyric's url
     lrcURL = getLyricURL( lyric );
 
@@ -139,7 +142,7 @@ function updateLyric(div, name, request) {
  * @param <String> lyric
  * @return <String> lrcURL
  */
-function getLyricURL(lyric) {
+ function getLyricURL(lyric) {
   var lrcURL = lyric.substring( lyric.indexOf("first_lrc_li") );
   
   lrcURL = lrcURL.substring( lrcURL.indexOf("down-lrc-btn") );
